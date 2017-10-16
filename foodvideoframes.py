@@ -8,7 +8,7 @@ import random
 def random_select_frames(dir_v,video,dir_i):#input a video
     cap = cv2.VideoCapture(dir_v+video)
     frame_sum = cap.get(7)
-    selected_frames = np.arange(int(0.3*frame_sum), int(frame_sum*0.9), 300) #random.sample(range(int(frame_sum*0.1), int(frame_sum*0.9)),10)
+    selected_frames = np.arange(int(0.3*frame_sum), int(frame_sum*0.9), int(frame_sum*0.6/50)) #random.sample(range(int(frame_sum*0.1), int(frame_sum*0.9)),10)
     
     for element in selected_frames:
         cap.set(1, element);
