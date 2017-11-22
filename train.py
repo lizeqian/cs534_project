@@ -13,6 +13,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data.sampler import RandomSampler
 import torch.optim as optim
 from logger import Logger
+from network.network import Net
 
 class Rand_num(Dataset):
     def __init__(self):   
@@ -34,11 +35,24 @@ class Rand_num(Dataset):
         data = []
         for element in sorted(os.listdir(dirs)):
             dirs_mod = os.path.join(dirs,element)
-            data.append(cv2.imread(dirs_mod,1))
+            img=cv2.imread(dirs_mod,1)
+            img=cv2.resize(img,None,fx=227/480, fy=227/270, interpolation = cv2.INTER_CUBIC)
+            data.append(np.swapaxes(np.swapaxes(img, 2, 1), 1, 0))
         return data, self.label[index]
 
     def __len__(self):
         return len(self.directories)
     
 if __name__ == '__main__':
-    dataset = Rand_num();
+    dataset = Rand_num()
+    sampler = RandomSampler(dataset)
+    loader = DataLoader(dataset, batch_size = 1, sampler = sampler, shuffle = False, num_workers=2)
+    net = Net(3,3)
+    for i, data in enumerate(loader, 0):
+        video, labels = data
+        labels = labels.float()
+        for j, frame in enumerate(video):
+            frame = Variable(frame.float()/256)
+            outputs = net.forward(frame)
+            break
+        break
