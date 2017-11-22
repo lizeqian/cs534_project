@@ -44,15 +44,23 @@ class Rand_num(Dataset):
         return len(self.directories)
     
 if __name__ == '__main__':
+    #####Please comment out the following 2 lines for cpu use################
+    torch.set_default_tensor_type('torch.cuda.FloatTensor')
+    torch.backends.cudnn.benchmark = True
+    
     dataset = Rand_num()
     sampler = RandomSampler(dataset)
     loader = DataLoader(dataset, batch_size = 1, sampler = sampler, shuffle = False, num_workers=2)
-    net = Net(3,3)
+    net = Net()
+    ########comment oput for cpu#############
+    net.cuda()
     for i, data in enumerate(loader, 0):
         video, labels = data
         labels = labels.float()
         for j, frame in enumerate(video):
-            frame = Variable(frame.float()/256)
+    #############CPU###############
+#            frame = Variable(frame.float()/256)
+            frame = Variable((frame.float()/256).cuda())
             outputs = net.forward(frame)
             break
         break

@@ -9,7 +9,7 @@ import math
 
 class Net(nn.Module):
     
-    def __init__(self, embedding_dim, hidden_dim):
+    def __init__(self):
         super(Net, self).__init__()
         self.conv1 = nn.Conv2d(3, 64, kernel_size=11, stride=4, padding=2)
         self.pool1 = nn.MaxPool2d(kernel_size=3, stride=2)
@@ -30,7 +30,12 @@ class Net(nn.Module):
             nn.Linear(4096, 3),
         )
         
-#        self.lstm = nn.LSTM(embedding_dim, hidden_dim)
+        self.lstm = nn.LSTM(9216, 9216, 5)
+        self.hidden = self.init_hidden()
+        
+    def init_hidden(self):
+        return (Variable((torch.zeros(5, 1, 9216)).cuda()), Variable((torch.zeros(5, 1, 9216)).cuda()))
+
         
     def forward(self, x):
         x = F.leaky_relu(self.conv1(x))
@@ -42,7 +47,10 @@ class Net(nn.Module):
         x = F.leaky_relu(self.conv5(x))
         x = self.pool3(x)
         x = x.view(x.size(0), 256 * 6 * 6)
+        print(x)
+        lstm_out, self.hidden = self.lstm(x.view(1, 1, -1), self.hidden)
 #        x = self.classifier(x)
+        print(lstm_out)
         return x
     
     
