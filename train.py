@@ -55,13 +55,16 @@ if __name__ == '__main__':
     net.cuda()
     for i, data in enumerate(loader, 0):
         video, labels = data
-        labels = labels.float()
+        labels = Variable(labels.long().cuda())
         for j, frame in enumerate(video):
     #############CPU###############
 #            frame = Variable(frame.float()/256)
             frame = Variable((frame.float()/256).cuda())
             outputs = net.forward(frame)
             print outputs
+            print labels
+            loss = net.lossFunction(outputs, labels)
+            print loss
             break
         break
 

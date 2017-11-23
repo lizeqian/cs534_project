@@ -37,6 +37,8 @@ class Net(nn.Module):
         self.linear_final = nn.Linear(256, 3)
         self.softmax_final = nn.Softmax()
 
+        self.loss = nn.CrossEntropyLoss()
+
     def init_hidden(self):
         return (Variable((torch.randn(self.hidden_layer, 1, self.hidden_dimension)).float().cuda()), Variable((torch.randn(self.hidden_layer, 1, self.hidden_dimension)).float().cuda()))
 
@@ -58,5 +60,8 @@ class Net(nn.Module):
         x = self.softmax_final(x)
         return x
 
+    def lossFunction(self, predicts, labels):
+        loss = self.loss(predicts, labels)
 
+        return loss
 
