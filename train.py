@@ -61,6 +61,7 @@ if __name__ == '__main__':
 #            frame = Variable(frame.float()/256)
             frame = Variable((frame.float()/256).cuda())
             outputs = net.forward(frame)
+            print outputs
             break
         break
 
