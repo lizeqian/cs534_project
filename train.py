@@ -1,12 +1,9 @@
-import matplotlib.pyplot as plt
 import numpy as np
-from PIL import Image
 import torch
 from torchvision import models, transforms
 from torch.autograd import Variable
 import datetime
 import cv2
-import glob
 import os
 from torch.utils.data.dataset import Dataset
 from torch.utils.data import DataLoader
