@@ -11,12 +11,10 @@ from torch.utils.data import DataLoader
 from torch.utils.data.sampler import RandomSampler
 import torch.optim as optim
 from logger import Logger
-from network.network import Net
-
-sys.path.append(os.path.split(sys.argv[0])[0])
+from network import Net
 
 class Rand_num(Dataset):
-    def __init__(self):   
+    def __init__(self):
         dirs = []
         self.label = []
         for i in range(3):
@@ -36,21 +34,22 @@ class Rand_num(Dataset):
         for element in sorted(os.listdir(dirs)):
             dirs_mod = os.path.join(dirs,element)
             img=cv2.imread(dirs_mod,1)
-            img=cv2.resize(img,None,fx=227/480, fy=227/270, interpolation = cv2.INTER_CUBIC)
+            img=cv2.resize(img,None,fx=227.0/480, fy=227.0/270, interpolation = cv2.INTER_CUBIC)
             data.append(np.swapaxes(np.swapaxes(img, 2, 1), 1, 0))
         return data, self.label[index]
 
     def __len__(self):
         return len(self.directories)
-    
+
 if __name__ == '__main__':
     #####Please comment out the following 2 lines for cpu use################
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
-    torch.backends.cudnn.benchmark = True
-    
+    #torch.backends.cudnn.benchmark = True
+
     dataset = Rand_num()
     sampler = RandomSampler(dataset)
     loader = DataLoader(dataset, batch_size = 1, sampler = sampler, shuffle = False, num_workers=2)
+    a = dataset.__getitem__(0)
     net = Net()
     ########comment oput for cpu#############
     net.cuda()
@@ -64,4 +63,4 @@ if __name__ == '__main__':
             outputs = net.forward(frame)
             break
         break
-    
+
