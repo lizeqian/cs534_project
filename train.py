@@ -4,6 +4,7 @@ from torchvision import models, transforms
 from torch.autograd import Variable
 import datetime
 import cv2
+import sys
 import os
 from torch.utils.data.dataset import Dataset
 from torch.utils.data import DataLoader
@@ -11,6 +12,8 @@ from torch.utils.data.sampler import RandomSampler
 import torch.optim as optim
 from logger import Logger
 from network.network import Net
+
+sys.path.append(os.path.split(sys.argv[0])[0])
 
 class Rand_num(Dataset):
     def __init__(self):   
