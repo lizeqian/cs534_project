@@ -47,10 +47,10 @@ class Net(nn.Module):
         x = F.leaky_relu(self.conv5(x))
         x = self.pool3(x)
         x = x.view(x.size(0), 256 * 6 * 6)
-        print(x)
+        print x
         lstm_out, self.hidden = self.lstm(x.view(1, 1, -1), self.hidden)
 #        x = self.classifier(x)
-        print(lstm_out)
+        print lstm_out
         return x
     
     
