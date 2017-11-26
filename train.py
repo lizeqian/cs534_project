@@ -53,6 +53,7 @@ if __name__ == '__main__':
     net.cuda()
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
     for epoch in range(1000):
+        print (epoch)
         for i, data in enumerate(loader, 0):
             net.zero_grad()
             video, labels = data
@@ -60,8 +61,10 @@ if __name__ == '__main__':
             video = torch.squeeze(Variable((video.float()/256).cuda()))
             net.train()
             outputs = net.forward(video)
-            loss = net.lossFunction(outputs, labels)
-            loss.backward()
-            optimizer.step()
-            print (loss)
+            if epoch%10==0 and i%100==0:
+                print (torch.sum(outputs))
+            #loss = net.lossFunction(outputs, labels)
+            #loss.backward()
+            #optimizer.step()
+            #print (loss)
 
