@@ -36,7 +36,7 @@ class Rand_num(Dataset):
             img=cv2.imread(dirs_mod,1)
             img=cv2.resize(img,None,fx=227.0/480, fy=227.0/270, interpolation = cv2.INTER_CUBIC)
             data.append(np.swapaxes(np.swapaxes(img, 2, 1), 1, 0))
-        return data, self.label[index]
+        return np.array(data), self.label[index]
 
     def __len__(self):
         return len(self.directories)
@@ -49,22 +49,19 @@ if __name__ == '__main__':
     dataset = Rand_num()
     sampler = RandomSampler(dataset)
     loader = DataLoader(dataset, batch_size = 1, sampler = sampler, shuffle = False, num_workers=2)
-    a = dataset.__getitem__(0)
     net = Net()
-    ########comment oput for cpu#############
     net.cuda()
-    for i, data in enumerate(loader, 0):
-        video, labels = data
-        labels = Variable(labels.long().cuda())
-        for j, frame in enumerate(video):
-    #############CPU###############
-#            frame = Variable(frame.float()/256)
-            frame = Variable((frame.float()/256).cuda())
-            outputs = net.forward(frame)
-            print outputs
-            print labels
+    optimizer = optim.Adam(net.parameters(), lr=0.0001)
+    for epoch in range(1000):
+        for i, data in enumerate(loader, 0):
+            net.zero_grad()
+            video, labels = data
+            labels = Variable(labels.long().cuda())
+            video = torch.squeeze(Variable((video.float()/256).cuda()))
+            net.train()
+            outputs = net.forward(video)
             loss = net.lossFunction(outputs, labels)
-            print loss
-            break
-        break
+            loss.backward()
+            optimizer.step()
+            print (loss)
 

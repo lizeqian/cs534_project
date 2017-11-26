@@ -37,8 +37,6 @@ class Net(nn.Module):
         self.linear_final = nn.Linear(256, 3)
         self.softmax_final = nn.Softmax()
 
-        self.loss = nn.CrossEntropyLoss()
-
     def init_hidden(self):
         return (Variable((torch.randn(self.hidden_layer, 1, self.hidden_dimension)).float().cuda()), Variable((torch.randn(self.hidden_layer, 1, self.hidden_dimension)).float().cuda()))
 
@@ -52,16 +50,16 @@ class Net(nn.Module):
         x = F.leaky_relu(self.conv4(x))
         x = F.leaky_relu(self.conv5(x))
         x = self.pool3(x)
-        x = x.view(x.size(0), 256 * 6 * 6)
+        x = x.view(x.size()[0], 256 * 6 * 6)
         x = self.classifier(x)
-        lstm_out, self.hidden = self.lstm(x.view(1, 1, -1), self.hidden)
-        lstm_out = lstm_out.view(lstm_out.size(1), 256)
-        x = self.linear_final(lstm_out)
+        #lstm_out, self.hidden = self.lstm(x.view(x.size()[0], 1, -1), self.hidden)
+        #lstm_out = torch.squeeze(lstm_out)
+        x = self.linear_final(x)
         x = self.softmax_final(x)
         return x
 
     def lossFunction(self, predicts, labels):
-        loss = self.loss(predicts, labels)
+        loss = torch.sum(predicts)
 
         return loss
 
