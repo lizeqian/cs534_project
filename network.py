@@ -55,10 +55,11 @@ class Net(nn.Module):
         #lstm_out, self.hidden = self.lstm(x.view(x.size()[0], 1, -1), self.hidden)
         #lstm_out = torch.squeeze(lstm_out)
         #x = self.linear_final(lstm_out)
-        #x = self.softmax_final(x)
+        x = self.softmax_final(x)
         return x
 
     def lossFunction(self, predicts, labels):
-        loss = torch.max(predicts)
-        return 1
+        loss = nn.CrossEntropyLoss()
+        output = loss(predicts, labels)
+        return output
 

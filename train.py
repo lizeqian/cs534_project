@@ -36,7 +36,7 @@ class Rand_num(Dataset):
             img=cv2.imread(dirs_mod,1)
             img=cv2.resize(img,None,fx=227.0/480, fy=227.0/270, interpolation = cv2.INTER_CUBIC)
             data.append(np.swapaxes(np.swapaxes(img, 2, 1), 1, 0))
-        return np.array(data), self.label[index]
+        return np.array(data), np.ones(len(data))*self.label[index]
 
     def __len__(self):
         return len(self.directories)
@@ -44,7 +44,7 @@ class Rand_num(Dataset):
 if __name__ == '__main__':
     #####Please comment out the following 2 lines for cpu use################
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
-    #torch.backends.cudnn.benchmark = True
+    torch.backends.cudnn.benchmark = True
 
     dataset = Rand_num()
     sampler = RandomSampler(dataset)
@@ -53,18 +53,16 @@ if __name__ == '__main__':
     net.cuda()
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
     for epoch in range(1000):
-        print (epoch)
         for i, data in enumerate(loader, 0):
             net.zero_grad()
             video, labels = data
-            labels = Variable(labels.long().cuda())
+            labels = torch.squeeze(Variable(labels.long().cuda()))
             video = torch.squeeze(Variable((video.float()/256).cuda()))
             net.train()
             outputs = net.forward(video)
-            if epoch%10==0 and i%100==0:
-                print (torch.sum(outputs))
-            #loss = net.lossFunction(outputs, labels)
-            #loss.backward()
-            #optimizer.step()
-            #print (loss)
+            loss = net.lossFunction(outputs, labels)
+            loss.backward()
+            optimizer.step()
+            if i == 0:
+                print (loss)
 
