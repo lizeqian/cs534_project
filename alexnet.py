@@ -41,7 +41,7 @@ class Rand_num(Dataset):
             img=cv2.imread(dirs_mod,1)
             img=cv2.resize(img,None,fx=227.0/480, fy=227.0/270, interpolation = cv2.INTER_CUBIC)
             data.append(np.swapaxes(np.swapaxes(img, 2, 1), 1, 0))
-        return np.array(data), np.ones(len(data))*self.label[index]
+        return np.array(data), self.label[index]
 
     def __len__(self):
         return len(self.directories)
@@ -104,9 +104,10 @@ if __name__ == '__main__':
     
     for i, data in enumerate(loader, 0):
         video, labels = data
-        labels = torch.squeeze(Variable(labels.long().cuda()))
+#        labels = torch.squeeze(Variable(labels.long().cuda()))
         video = torch.squeeze(Variable((video.float()/256).cuda()))
         net.train()
         outputs = net.forward(video)
-        print (outputs)
-        break
+        o = outputs.data.cpu().numpy()
+        outdir = './data/cnndata/'+str(i)+'.csv'
+        np.savetxt(outdir, o, fmt='%g', delimiter=',', newline='\n', header=str(labels.numpy()[0]), footer='', comments='')
