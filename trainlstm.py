@@ -24,7 +24,7 @@ class Rand_num(Dataset):
         data = np.loadtxt(file_name,delimiter=',', skiprows=1)
         label = np.genfromtxt(file_name,delimiter=',', usecols = 0)
 
-        return data, label[0]
+        return data[0:50], label[0]
 
     def __len__(self):
         return len(self.dirs)
@@ -37,11 +37,12 @@ if __name__ == '__main__':
     SAVE_PATH = './cp_lstm.bin'
 
     lossfunction = nn.CrossEntropyLoss()
+    batch_size = 20
 
     dataset = Rand_num()
     sampler = RandomSampler(dataset)
-    loader = DataLoader(dataset, batch_size = 1, sampler = sampler, shuffle = False, num_workers=1)
-    net = LSTMLayer(1000, 3, 5)
+    loader = DataLoader(dataset, batch_size, sampler = sampler, shuffle = False, num_workers=1, drop_last=True)
+    net = LSTMLayer(1000, 3, 5, batch_size)
     net.cuda()
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
     for epoch in range(10000):
@@ -50,7 +51,8 @@ if __name__ == '__main__':
             net.hidden = net.init_hidden()
             video, labels = data
             labels = torch.squeeze(Variable(labels.long().cuda()))
-            video = torch.squeeze(Variable((video.float()/256).cuda()))
+            video = Variable((video.float()/256).cuda()).permute(1,0,2)
+
             net.train()
             outputs = net.forward(video)
             loss = lossfunction(outputs, labels)
