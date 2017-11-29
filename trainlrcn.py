@@ -58,7 +58,9 @@ if __name__ == '__main__':
     for epoch in range(10000):
         for i, data in enumerate(loader, 0):
             video, labels = data
-            video = video.view(-1,3,227,227)
+            video = video.permute(1,0,2,3,4)
+            print(video.size())
+            video = video.contiguous().view(-1,3,227,227)
             net.zero_grad()
             net.hidden = net.init_hidden()
             labels = Variable(labels.long())
