@@ -23,9 +23,7 @@ class Rand_num(Dataset):
         file_name = self.dirs[index]
         data = np.loadtxt(file_name,delimiter=',', skiprows=1)
         label = np.genfromtxt(file_name,delimiter=',', usecols = 0)
-        outlabel = np.zeros(3)
-        outlabel[label[0]] = 1
-        return data[0:50], outlabel
+        return data[0:50], label[0]
 
     def __len__(self):
         return len(self.dirs)
@@ -52,6 +50,7 @@ if __name__ == '__main__':
 
         net.eval()
         outputs = net.forward(video)
-        print(labels)
-        print(outputs)
+        _, maxout = torch.max(outputs, 1)
+        accu = torch.mean(torch.eq(labels, outputs))
+        print(accu)
         break
