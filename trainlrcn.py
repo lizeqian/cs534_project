@@ -47,7 +47,7 @@ if __name__ == '__main__':
 #    torch.set_default_tensor_type('torch.cuda.FloatTensor')
 #    torch.backends.cudnn.benchmark = True
     batch_size = 20
-    SAVE_PATH = './cp.bin'
+    SAVE_PATH = './cp_lrcn.bin'
     
     dataset = Rand_num()
     sampler = RandomSampler(dataset)
