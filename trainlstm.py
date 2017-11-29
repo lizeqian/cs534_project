@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
     SAVE_PATH = './cp_lstm.bin'
 
-    lossfunction = nn.CrossEntropyLoss()
+    lossfunction = nn.MSELoss()
     batch_size = 50
 
     dataset = Rand_num()
@@ -51,7 +51,7 @@ if __name__ == '__main__':
             net.zero_grad()
             net.hidden = net.init_hidden()
             video, labels = data
-            labels = torch.squeeze(Variable(labels.long().cuda()))
+            labels = torch.squeeze(Variable(labels.float().cuda()))
             video = Variable((video.float()/256).cuda()).permute(1,0,2)
 
             net.train()
