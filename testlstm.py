@@ -43,22 +43,14 @@ if __name__ == '__main__':
     sampler = RandomSampler(dataset)
     loader = DataLoader(dataset, batch_size, sampler = sampler, shuffle = False, num_workers=1, drop_last=True)
     net = LSTMLayer(1000, 3, 5, batch_size)
+    net.load_state_dict(torch.load(SAVE_PATH))
     net.cuda()
-    optimizer = optim.Adam(net.parameters(), lr=0.0005)
-    for epoch in range(10000):
-        for i, data in enumerate(loader, 0):
-            net.zero_grad()
-            net.hidden = net.init_hidden()
-            video, labels = data
-            labels = torch.squeeze(Variable(labels.long().cuda()))
-            video = Variable((video.float()/256).cuda()).permute(1,0,2)
+    for i, data in enumerate(loader, 0):
+        video, labels = data
+        video = Variable((video.float()/256).cuda()).permute(1,0,2)
 
-            net.train()
-            outputs = net.forward(video)
-            loss = lossfunction(outputs, labels)
-            loss.backward()
-            optimizer.step()
-            if i == 0:
-                torch.save(net.state_dict(), SAVE_PATH)
-                print (datetime.datetime.now())
-                print (loss)
+        net.eval()
+        outputs = net.forward(video)
+        print(labels)
+        print(outputs)
+        break
