@@ -34,6 +34,8 @@ if __name__ == '__main__':
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
     torch.backends.cudnn.benchmark = True
 
+    SAVE_PATH = './cp_lstm.bin'
+
     lossfunction = nn.CrossEntropyLoss()
 
     dataset = Rand_num()
@@ -41,8 +43,8 @@ if __name__ == '__main__':
     loader = DataLoader(dataset, batch_size = 1, sampler = sampler, shuffle = False, num_workers=1)
     net = LSTMLayer(1000, 3, 5)
     net.cuda()
-    optimizer = optim.Adam(net.parameters(), lr=0.00001)
-    for epoch in range(1000):
+    optimizer = optim.Adam(net.parameters(), lr=0.0001)
+    for epoch in range(10000):
         for i, data in enumerate(loader, 0):
             net.zero_grad()
             net.hidden = net.init_hidden()
@@ -55,4 +57,6 @@ if __name__ == '__main__':
             loss.backward()
             optimizer.step()
             if i == 0:
+                torch.save(net.state_dict(), SAVE_PATH)
+                print (datetime.datetime.now())
                 print (loss)
