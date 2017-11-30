@@ -12,7 +12,7 @@ class LRCN(nn.Module):
         self.num_layers = lstm_layer
         self.lstm = nn.LSTM(256 * 6 * 6, hidden_dim, lstm_layer)
         self.hidden = self.init_hidden()
-        
+
         self.features = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size=11, stride=4, padding=2),
             nn.ReLU(inplace=True),
@@ -37,7 +37,8 @@ class LRCN(nn.Module):
             nn.ReLU(inplace=True),
             nn.Linear(4096, embedding_dim),
         )
-        
+        self.sm = nn.Softmax()
+
     def init_hidden(self):
         return (autograd.Variable(torch.zeros(self.num_layers, self.batch, self.hidden_dim)),
                 autograd.Variable(torch.zeros(self.num_layers, self.batch, self.hidden_dim)))
@@ -46,10 +47,9 @@ class LRCN(nn.Module):
         x = self.features(x)
         x = x.view(-1, self.batch, 256 * 6 * 6)
 #        x = self.classifier(x)
-        print(x.size())
         lstm_out, self.hidden = self.lstm(x, self.hidden)
         outs = lstm_out[-1]
-        outs = F.log_softmax(outs)
+        outs = self.sm(outs)
         return outs
 
 

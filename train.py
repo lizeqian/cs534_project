@@ -52,8 +52,9 @@ if __name__ == '__main__':
     sampler = RandomSampler(dataset)
     loader = DataLoader(dataset, batch_size = 1, sampler = sampler, shuffle = False, num_workers=2)
     net = Net()
+    net.load_state_dict(torch.load(SAVE_PATH))
     net.cuda()
-    optimizer = optim.Adam(net.parameters(), lr=0.00001)
+    optimizer = optim.Adam(net.parameters(), lr=0.0005)
     for epoch in range(10000):
         for i, data in enumerate(loader, 0):
             net.zero_grad()

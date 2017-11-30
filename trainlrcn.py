@@ -12,6 +12,7 @@ from torch.utils.data.sampler import RandomSampler
 import torch.optim as optim
 from logger import Logger
 from lrcn import LRCN
+import torch.nn as nn
 
 class Rand_num(Dataset):
     def __init__(self):
@@ -37,40 +38,45 @@ class Rand_num(Dataset):
             img=cv2.imread(dirs_mod,1)
             img=cv2.resize(img,None,fx=227.0/480, fy=227.0/270, interpolation = cv2.INTER_CUBIC)
             data.append(np.swapaxes(np.swapaxes(img, 2, 1), 1, 0))
-        return np.array(data), self.label[index]
+
+            outlabel = np.zeros(3)
+            outlabel[int(self.label[index])] = 1
+        return np.array(data), outlabel
 
     def __len__(self):
         return len(self.directories)
 
 if __name__ == '__main__':
     #####Please comment out the following 2 lines for cpu use################
-#    torch.set_default_tensor_type('torch.cuda.FloatTensor')
-#    torch.backends.cudnn.benchmark = True
+    torch.set_default_tensor_type('torch.cuda.FloatTensor')
+    torch.backends.cudnn.benchmark = True
     batch_size = 20
     SAVE_PATH = './cp_lrcn.bin'
-    
+    lossfunction = nn.MSELoss()
+
     dataset = Rand_num()
     sampler = RandomSampler(dataset)
     loader = DataLoader(dataset, batch_size, sampler = sampler, shuffle = False, num_workers=1, drop_last=True)
     net = LRCN(256, 3, 5, batch_size)
-#    net.cuda()
+    net.load_state_dict(torch.load(SAVE_PATH))
+    net.cuda()
     optimizer = optim.Adam(net.parameters(), lr=0.00001)
     for epoch in range(10000):
         for i, data in enumerate(loader, 0):
             video, labels = data
             video = video.permute(1,0,2,3,4)
-            print(video.size())
             video = video.contiguous().view(-1,3,227,227)
             net.zero_grad()
             net.hidden = net.init_hidden()
-            labels = Variable(labels.long())
-            video = Variable((video.float()/256))
+            labels = Variable(labels.float().cuda())
+            video = Variable((video.float()/256).cuda())
             net.train()
             outputs = net.forward(video)
-            loss = net.lossFunction(outputs, labels)
+            loss = lossfunction(outputs, labels)
             loss.backward()
             optimizer.step()
             if i == 0:
+                print(datetime.datetime.now())
                 torch.save(net.state_dict(), SAVE_PATH)
                 print (loss)
 
