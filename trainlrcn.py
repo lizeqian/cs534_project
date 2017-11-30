@@ -50,7 +50,7 @@ if __name__ == '__main__':
     #####Please comment out the following 2 lines for cpu use################
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
     torch.backends.cudnn.benchmark = True
-    batch_size = 20
+    batch_size = 50
     SAVE_PATH = './cp_lrcn.bin'
     lossfunction = nn.MSELoss()
 
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     net = LRCN(256, 3, 5, batch_size)
     net.load_state_dict(torch.load(SAVE_PATH))
     net.cuda()
-    optimizer = optim.Adam(net.parameters(), lr=0.00001)
+    optimizer = optim.Adam(net.parameters(), lr=0.001)
     for epoch in range(10000):
         for i, data in enumerate(loader, 0):
             video, labels = data
