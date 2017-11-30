@@ -15,9 +15,9 @@ import torch.nn as nn
 
 class Rand_num(Dataset):
     def __init__(self):
-        self.dirs=sorted(os.listdir("data/cnndata/"))
+        self.dirs=sorted(os.listdir("data/cnndata_test/"))
         for j in range(len(self.dirs)):
-            self.dirs[j] = os.path.join("data/cnndata/",self.dirs[j])
+            self.dirs[j] = os.path.join("data/cnndata_test/",self.dirs[j])
 
     def __getitem__(self, index):
         file_name = self.dirs[index]
@@ -36,7 +36,7 @@ if __name__ == '__main__':
     SAVE_PATH = './cp_lstm.bin'
 
     lossfunction = nn.CrossEntropyLoss()
-    batch_size = 50
+    batch_size = 150
 
     dataset = Rand_num()
     sampler = RandomSampler(dataset)
@@ -47,10 +47,10 @@ if __name__ == '__main__':
     for i, data in enumerate(loader, 0):
         video, labels = data
         video = Variable((video.float()/256).cuda()).permute(1,0,2)
+        labels = Variable(labels.float().cuda())
 
         net.eval()
         outputs = net.forward(video)
         _, maxout = torch.max(outputs, 1)
-        accu = torch.mean(torch.eq(labels, outputs))
+        accu = torch.mean(torch.eq(labels, maxout.float()).float())
         print(accu)
-        break
