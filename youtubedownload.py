@@ -4,12 +4,13 @@ from apiclient.discovery import build
 from apiclient.errors import HttpError
 import argparse
 from pytube import YouTube
+import os
 
 # Set DEVELOPER_KEY to the API key value from the APIs & auth > Registered apps
 # tab of
 #   https://cloud.google.com/console
 # Please ensure that you have enabled the YouTube Data API for your project.
-DEVELOPER_KEY = ""
+DEVELOPER_KEY = "AIzaSyBPsK8otoxQqTj_XyAYyKZmL49QM-MmO9U"
 YOUTUBE_API_SERVICE_NAME = "youtube"
 YOUTUBE_API_VERSION = "v3"
 
@@ -62,19 +63,17 @@ def youtube_download(name, number, resolution, dest): #(string, num_of_videos, s
       link_ids=[]
       link_ids=search_result
       
+      if not os.path.exists(dest):
+          os.makedirs(dest)
+      
       for element in link_ids:
           source = "http://www.youtube.com/watch?v="+element
           yt = YouTube(source)
-          if yt.filter('mp4', resolution):
-              video = yt.get('mp4', resolution)
-              yt.set_filename('video_'+str(num_dl_videos))
-              video.download(dest)
-              num_dl_videos += 1
-              print "%d Video Dowloaded\n" %(num_dl_videos)
-          else:
-              print "Video fails to meet criterion"
-              continue
-      
+          stream = yt.streams.filter(subtype='mp4', res="480p").first()
+          stream.download(output_path=dest)
+          num_dl_videos += 1
+          print "%d Video Dowloaded\n" %(num_dl_videos)
+
       while num_dl_videos < number:
           parser.add_argument("--nextpage", help="nextpage", default=str(nextpage))
           args = parser.parse_args()
@@ -89,19 +88,14 @@ def youtube_download(name, number, resolution, dest): #(string, num_of_videos, s
           for element in link_ids:
               source = "http://www.youtube.com/watch?v="+element
               yt = YouTube(source)
-              if yt.filter('mp4', resolution):
-                  video = yt.get('mp4', resolution)
-                  yt.set_filename('video_'+str(num_dl_videos))
-                  video.download(dest)
-                  num_dl_videos += 1
-                  print "%d Video Dowloaded\n" %(num_dl_videos)
-              else:
-                  print "Video fails to meet criterion"
-                  continue
+              stream = yt.streams.filter(subtype='mp4', res="480p").first()
+              stream.download(output_path=dest)
+              num_dl_videos += 1
+              print "%d Video Dowloaded\n" %(num_dl_videos)
           
         
 
 
 if __name__ == "__main__":
-    youtube_download('algebra', 100, '720p', './videos')
+    youtube_download('sushi', 100, '720p', './videos')
   
