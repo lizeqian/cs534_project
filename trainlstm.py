@@ -45,7 +45,7 @@ if __name__ == '__main__':
     sampler = RandomSampler(dataset)
     loader = DataLoader(dataset, batch_size, sampler = sampler, shuffle = False, num_workers=1, drop_last=True)
     net = LSTMLayer(1000, 1024, 5, batch_size)
-    #net.load_state_dict(torch.load(SAVE_PATH))
+    net.load_state_dict(torch.load(SAVE_PATH))
     net.cuda()
     optimizer = optim.Adam(net.parameters(), lr=0.0005)
     for epoch in range(10000):
@@ -63,5 +63,11 @@ if __name__ == '__main__':
             optimizer.step()
             if i == 0:
                 torch.save(net.state_dict(), SAVE_PATH)
+                net.eval()
+                outputs = net.forward(video)
+                _, maxout = torch.max(outputs, 1)
+                _, gtlabel = torch.max(labels, 1)
+                accu = torch.mean(torch.eq(gtlabel.float(), maxout.float()).float())
                 print (datetime.datetime.now())
                 print (loss)
+                print (accu)

@@ -33,7 +33,7 @@ if __name__ == '__main__':
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
     torch.backends.cudnn.benchmark = True
 
-    SAVE_PATH = './cp_lstm1.bin'
+    SAVE_PATH = './cp_lstm.bin'
 
     lossfunction = nn.CrossEntropyLoss()
     batch_size = 150

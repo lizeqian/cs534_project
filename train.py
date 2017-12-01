@@ -1,6 +1,5 @@
 import numpy as np
 import torch
-from torchvision import models, transforms
 from torch.autograd import Variable
 import datetime
 import cv2
@@ -11,7 +10,8 @@ from torch.utils.data import DataLoader
 from torch.utils.data.sampler import RandomSampler
 import torch.optim as optim
 from logger import Logger
-from network import Net
+from alexnet import AlexNet
+import torch.nn as nn
 
 class Rand_num(Dataset):
     def __init__(self):
@@ -36,7 +36,9 @@ class Rand_num(Dataset):
             img=cv2.imread(dirs_mod,1)
             img=cv2.resize(img,None,fx=227.0/480, fy=227.0/270, interpolation = cv2.INTER_CUBIC)
             data.append(np.swapaxes(np.swapaxes(img, 2, 1), 1, 0))
-        return np.array(data), np.ones(len(data))*self.label[index]
+        labels = np.zeros((50,3))
+        labels[:,int(self.label[index])]=1
+        return np.array(data[0:50]), labels
 
     def __len__(self):
         return len(self.directories)
@@ -47,26 +49,32 @@ if __name__ == '__main__':
     torch.backends.cudnn.benchmark = True
 
     SAVE_PATH = './cp.bin'
+    logger = Logger('./cnnlogs')
+
+    lossfunction = nn.MSELoss()
 
     dataset = Rand_num()
     sampler = RandomSampler(dataset)
-    loader = DataLoader(dataset, batch_size = 1, sampler = sampler, shuffle = False, num_workers=2)
-    net = Net()
-    net.load_state_dict(torch.load(SAVE_PATH))
+    loader = DataLoader(dataset, batch_size = 20, sampler = sampler, shuffle = False, num_workers=1, drop_last=True)
+    net = AlexNet(3)
+    #net.load_state_dict(torch.load(SAVE_PATH))
     net.cuda()
     optimizer = optim.Adam(net.parameters(), lr=0.0005)
     for epoch in range(10000):
         for i, data in enumerate(loader, 0):
             net.zero_grad()
             video, labels = data
-            labels = torch.squeeze(Variable(labels.long().cuda()))
+            video=video.view(-1, 3, 227, 227)
+            labels=labels.view(-1,3)
+            labels = torch.squeeze(Variable(labels.float().cuda()))
             video = torch.squeeze(Variable((video.float()/256).cuda()))
             net.train()
             outputs = net.forward(video)
-            loss = net.lossFunction(outputs, labels)
+            loss = lossfunction(outputs, labels)
             loss.backward()
             optimizer.step()
             if i == 0:
                 torch.save(net.state_dict(), SAVE_PATH)
                 print (loss)
+                logger.scalar_summary('loss', loss.data.cpu().numpy(), epoch)
 
