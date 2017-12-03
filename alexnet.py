@@ -23,12 +23,12 @@ class Rand_num(Dataset):
         dirs = []
         self.label = []
         for i in range(3):
-            dirs.append(sorted(os.listdir("data/testset/"+str(i))))
+            dirs.append(sorted(os.listdir("data/largedataset/"+str(i))))
             length = len(dirs[i])
             self.label.append(np.ones(length)*i)
         for i in range(3):
             for j in range(len(dirs[i])):
-                dirs[i][j] = os.path.join("data/testset/"+str(i),dirs[i][j])
+                dirs[i][j] = os.path.join("data/largedataset/"+str(i),dirs[i][j])
         self.directories = np.concatenate((dirs[0],dirs[1],dirs[2]))
         self.label = np.concatenate((self.label[0], self.label[1], self.label[2]))
         assert len(self.directories) == len(self.label)
@@ -103,11 +103,12 @@ if __name__ == '__main__':
     loader = DataLoader(dataset, batch_size = 1, sampler = sampler, shuffle = False, num_workers=2)
 
     for i, data in enumerate(loader, 0):
+        print(i)
         video, labels = data
 #        labels = torch.squeeze(Variable(labels.long().cuda()))
         video = torch.squeeze(Variable((video.float()/256).cuda()))
         net.train()
         outputs = net.forward(video)
         o = outputs.data.cpu().numpy()
-        outdir = './data/cnndata_test/'+str(i)+'.csv'
+        outdir = './data/largecnndata/'+str(i)+'.csv'
         np.savetxt(outdir, o, fmt='%g', delimiter=',', newline='\n', header=str(labels.numpy()[0]), footer='', comments='')

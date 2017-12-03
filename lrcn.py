@@ -10,7 +10,7 @@ class LRCN(nn.Module):
         self.hidden_dim = hidden_dim
         self.batch = batch
         self.num_layers = lstm_layer
-        self.lstm = nn.LSTM(256 * 6 * 6, hidden_dim, lstm_layer)
+        self.lstm = nn.LSTM(256 * 6 * 6, hidden_dim, lstm_layer, dropout = 1)
         self.hidden = self.init_hidden()
 
         self.features = nn.Sequential(

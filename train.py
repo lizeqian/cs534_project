@@ -18,12 +18,12 @@ class Rand_num(Dataset):
         dirs = []
         self.label = []
         for i in range(3):
-            dirs.append(sorted(os.listdir("data/dataset/"+str(i))))
+            dirs.append(sorted(os.listdir("data/largedataset/"+str(i))))
             length = len(dirs[i])
             self.label.append(np.ones(length)*i)
         for i in range(3):
             for j in range(len(dirs[i])):
-                dirs[i][j] = os.path.join("data/dataset/"+str(i),dirs[i][j])
+                dirs[i][j] = os.path.join("data/largedataset/"+str(i),dirs[i][j])
         self.directories = np.concatenate((dirs[0],dirs[1],dirs[2]))
         self.label = np.concatenate((self.label[0], self.label[1], self.label[2]))
         assert len(self.directories) == len(self.label)
@@ -48,8 +48,8 @@ if __name__ == '__main__':
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
     torch.backends.cudnn.benchmark = True
 
-    SAVE_PATH = './cp.bin'
-    logger = Logger('./cnnlogs')
+    SAVE_PATH = './cp_large.bin'
+    logger = Logger('./largecnnlogs')
 
     lossfunction = nn.MSELoss()
 
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     net = AlexNet(3)
     #net.load_state_dict(torch.load(SAVE_PATH))
     net.cuda()
-    optimizer = optim.Adam(net.parameters(), lr=0.0005)
+    optimizer = optim.Adam(net.parameters(), lr=0.001)
     for epoch in range(10000):
         for i, data in enumerate(loader, 0):
             net.zero_grad()

@@ -50,7 +50,7 @@ if __name__ == '__main__':
     #####Please comment out the following 2 lines for cpu use################
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
     torch.backends.cudnn.benchmark = True
-    batch_size = 50
+    batch_size = 1
     SAVE_PATH = './cp_lrcn.bin'
     lossfunction = nn.MSELoss()
 
@@ -78,5 +78,10 @@ if __name__ == '__main__':
             if i == 0:
                 print(datetime.datetime.now())
                 torch.save(net.state_dict(), SAVE_PATH)
+                net.eval()
+                outputs = new.foward(video)
+                _, maxout = torch.max(outputs, 1)
+                _, gtlabel = torch.max(labels, 1)
+                accu = torch.mean(torch.eq(gtlabel.float(), maxout.float()).float())
                 print (loss)
 

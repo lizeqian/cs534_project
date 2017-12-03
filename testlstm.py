@@ -15,9 +15,9 @@ import torch.nn as nn
 
 class Rand_num(Dataset):
     def __init__(self):
-        self.dirs=sorted(os.listdir("data/cnndata_test/"))
+        self.dirs=sorted(os.listdir("data/largecnndata_test/"))
         for j in range(len(self.dirs)):
-            self.dirs[j] = os.path.join("data/cnndata_test/",self.dirs[j])
+            self.dirs[j] = os.path.join("data/largecnndata_test/",self.dirs[j])
 
     def __getitem__(self, index):
         file_name = self.dirs[index]
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
     torch.backends.cudnn.benchmark = True
 
-    SAVE_PATH = './cp_lstm.bin'
+    SAVE_PATH = './cp_largelstm.bin'
 
     lossfunction = nn.CrossEntropyLoss()
     batch_size = 150

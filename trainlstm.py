@@ -37,17 +37,18 @@ if __name__ == '__main__':
     torch.backends.cudnn.benchmark = True
 
     SAVE_PATH = './cp_lstm.bin'
+    logger = Logger('./lstmlogs')
 
     lossfunction = nn.MSELoss()
-    batch_size = 50
+    batch_size = 100
 
     dataset = Rand_num()
     sampler = RandomSampler(dataset)
     loader = DataLoader(dataset, batch_size, sampler = sampler, shuffle = False, num_workers=1, drop_last=True)
     net = LSTMLayer(1000, 1024, 5, batch_size)
-    net.load_state_dict(torch.load(SAVE_PATH))
+    #net.load_state_dict(torch.load(SAVE_PATH))
     net.cuda()
-    optimizer = optim.Adam(net.parameters(), lr=0.0005)
+    optimizer = optim.Adam(net.parameters(), lr=0.00005)
     for epoch in range(10000):
         for i, data in enumerate(loader, 0):
             net.zero_grad()
@@ -71,3 +72,5 @@ if __name__ == '__main__':
                 print (datetime.datetime.now())
                 print (loss)
                 print (accu)
+                logger.scalar_summary('loss', loss.data.cpu().numpy(), epoch)
+                logger.scalar_summary('accu', accu.data.cpu().numpy(), epoch)
