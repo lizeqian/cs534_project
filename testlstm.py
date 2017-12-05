@@ -7,7 +7,7 @@ import sys
 import os
 from torch.utils.data.dataset import Dataset
 from torch.utils.data import DataLoader
-from torch.utils.data.sampler import RandomSampler
+from torch.utils.data.sampler import SequentialSampler
 import torch.optim as optim
 from logger import Logger
 from lstmlayer import LSTMLayer
@@ -15,9 +15,9 @@ import torch.nn as nn
 
 class Rand_num(Dataset):
     def __init__(self):
-        self.dirs=sorted(os.listdir("data/largecnndata_test/"))
+        self.dirs=sorted(os.listdir("data/cnndata_test/"))
         for j in range(len(self.dirs)):
-            self.dirs[j] = os.path.join("data/largecnndata_test/",self.dirs[j])
+            self.dirs[j] = os.path.join("data/cnndata_test/",self.dirs[j])
 
     def __getitem__(self, index):
         file_name = self.dirs[index]
@@ -33,24 +33,24 @@ if __name__ == '__main__':
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
     torch.backends.cudnn.benchmark = True
 
-    SAVE_PATH = './cp_largelstm.bin'
+    SAVE_PATH = './cp_lstm_128.bin'
 
     lossfunction = nn.CrossEntropyLoss()
-    batch_size = 150
+    batch_size = 1
 
     dataset = Rand_num()
-    sampler = RandomSampler(dataset)
+    sampler = SequentialSampler(dataset)
     loader = DataLoader(dataset, batch_size, sampler = sampler, shuffle = False, num_workers=1, drop_last=True)
-    net = LSTMLayer(1000, 1024, 5, batch_size)
+    net = LSTMLayer(1000, 128, 5, batch_size)
     net.load_state_dict(torch.load(SAVE_PATH))
     net.cuda()
     for i, data in enumerate(loader, 0):
         video, labels = data
         video = Variable((video.float()/256).cuda()).permute(1,0,2)
         labels = Variable(labels.float().cuda())
-
+        net.hidden = net.init_hidden()
         net.eval()
         outputs = net.forward(video)
         _, maxout = torch.max(outputs, 1)
         accu = torch.mean(torch.eq(labels, maxout.float()).float())
-        print(accu)
+        print(labels.data.cpu().numpy().item(), maxout.data.cpu().numpy().item())

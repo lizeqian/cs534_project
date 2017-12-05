@@ -41,7 +41,7 @@ class Rand_num(Dataset):
 
             outlabel = np.zeros(3)
             outlabel[int(self.label[index])] = 1
-        return np.array(data), self.label[index]
+        return np.array(data), outlabel
 
     def __len__(self):
         return len(self.directories)
@@ -50,42 +50,31 @@ if __name__ == '__main__':
     #####Please comment out the following 2 lines for cpu use################
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
     torch.backends.cudnn.benchmark = True
-    batch_size = 10
+    batch_size = 1
     SAVE_PATH = './cp_lrcn2.bin'
-    lossfunction = nn.CrossEntropyLoss()
-    logger = Logger('./lrcnlogs2')
+    lossfunction = nn.MSELoss()
+    logger = Logger('./lrcnlogs')
 
     dataset = Rand_num()
     sampler = RandomSampler(dataset)
     loader = DataLoader(dataset, batch_size, sampler = sampler, shuffle = False, num_workers=1, drop_last=True)
     net = LRCN(1000, 128, 5, batch_size)
-    #net.load_state_dict(torch.load(SAVE_PATH))
+    net.load_state_dict(torch.load(SAVE_PATH))
     net.cuda()
-    optimizer = optim.Adam(net.parameters(), lr=0.0001)
-    for epoch in range(10000):
-        for i, data in enumerate(loader, 0):
-            video, labels = data
-            video = video.permute(1,0,2,3,4)
-            video = video.contiguous().view(-1,3,227,227)
-            net.zero_grad()
-            net.hidden = net.init_hidden()
-            labels = Variable(labels.long().cuda())
-            video = Variable((video.float()/256).cuda())
-            net.train()
-            outputs = net.forward(video)
-            loss = lossfunction(outputs, labels)
-            loss.backward()
-            optimizer.step()
-            if i == 0:
-                print(datetime.datetime.now())
-                torch.save(net.state_dict(), SAVE_PATH)
-                net.eval()
-                outputs = net.forward(video)
-                _, maxout = torch.max(outputs, 1)
-                #_, gtlabel = torch.max(labels, 1)
-                accu = torch.mean(torch.eq(labels.float(), maxout.float()).float())
-                print (loss)
-                print (accu)
-                logger.scalar_summary('loss', loss.data.cpu().numpy(), epoch)
-                logger.scalar_summary('accu', accu.data.cpu().numpy(), epoch)
+    for i, data in enumerate(loader, 0):
+        video, labels = data
+        video = video.permute(1,0,2,3,4)
+        video = video.contiguous().view(-1,3,227,227)
+        net.zero_grad()
+        net.hidden = net.init_hidden()
+        labels = Variable(labels.float().cuda())
+        video = Variable((video.float()/256).cuda())
+        net.eval()
+        outputs = net.forward(video)
+        _, maxout = torch.max(outputs, 1)
+        _, gtlabel = torch.max(labels, 1)
+        accu = torch.mean(torch.eq(gtlabel.float(), maxout.float()).float())
+        accu_nump = accu.data.cpu().numpy()
+        print (gtlabel.data.cpu().numpy().item(), maxout.data.cpu().numpy().item())
+
 

@@ -10,22 +10,27 @@ class LRCN(nn.Module):
         self.hidden_dim = hidden_dim
         self.batch = batch
         self.num_layers = lstm_layer
-        self.lstm = nn.LSTM(256 * 6 * 6, hidden_dim, lstm_layer, dropout = 1)
+        self.lstm = nn.LSTM(256*6*6, hidden_dim, lstm_layer, dropout = 0.5)
         self.hidden = self.init_hidden()
 
         self.features = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size=11, stride=4, padding=2),
-            nn.ReLU(inplace=True),
+            nn.BatchNorm2d(64),
+            nn.LeakyReLU(inplace=True),
             nn.MaxPool2d(kernel_size=3, stride=2),
             nn.Conv2d(64, 192, kernel_size=5, padding=2),
-            nn.ReLU(inplace=True),
+            nn.BatchNorm2d(192),
+            nn.LeakyReLU(inplace=True),
             nn.MaxPool2d(kernel_size=3, stride=2),
             nn.Conv2d(192, 384, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
+            nn.BatchNorm2d(384),
+            nn.LeakyReLU(inplace=True),
             nn.Conv2d(384, 256, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
+            nn.BatchNorm2d(256),
+            nn.LeakyReLU(inplace=True),
             nn.Conv2d(256, 256, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
+            nn.BatchNorm2d(256),
+            nn.LeakyReLU(inplace=True),
             nn.MaxPool2d(kernel_size=3, stride=2),
         )
         self.classifier = nn.Sequential(
@@ -37,6 +42,7 @@ class LRCN(nn.Module):
             nn.ReLU(inplace=True),
             nn.Linear(4096, embedding_dim),
         )
+        self.final_linear = nn.Linear(hidden_dim, 3)
         self.sm = nn.Softmax()
 
     def init_hidden(self):
@@ -46,10 +52,11 @@ class LRCN(nn.Module):
     def forward(self, x):
         x = self.features(x)
         x = x.view(-1, self.batch, 256 * 6 * 6)
-#        x = self.classifier(x)
+        #x = self.classifier(x)
         lstm_out, self.hidden = self.lstm(x, self.hidden)
         outs = lstm_out[-1]
-        outs = self.sm(outs)
+        outs = self.final_linear(outs)
+        #outs = self.sm(outs)
         return outs
 
 

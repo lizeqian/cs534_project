@@ -9,9 +9,9 @@ class LSTMLayer(nn.Module):
         self.hidden_dim = hidden_dim
         self.batch = batch
         self.num_layers = lstm_layer
-        self.lstm = nn.LSTM(embedding_dim, hidden_dim, lstm_layer, dropout=1)
+        self.lstm = nn.LSTM(embedding_dim, hidden_dim, lstm_layer, dropout=0.5)
         self.hidden = self.init_hidden()
-        self.final_linear = nn.Linear(1024, 3)
+        self.final_linear = nn.Linear(hidden_dim, 3)
         self.sm = nn.Softmax()
 
     def init_hidden(self):
@@ -23,5 +23,5 @@ class LSTMLayer(nn.Module):
         lstm_out, self.hidden = self.lstm(inputs, self.hidden)
         outs = lstm_out[-1]
         outs = self.final_linear(outs)
-        outs = self.sm(outs)
+        #outs = self.sm(outs)
         return outs

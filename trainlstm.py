@@ -26,7 +26,7 @@ class Rand_num(Dataset):
 
         outlabel = np.zeros(3)
         outlabel[int(label[0])] = 1
-        return data[0:50], outlabel
+        return data[0:50], label[0]
 
     def __len__(self):
         return len(self.dirs)
@@ -36,25 +36,25 @@ if __name__ == '__main__':
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
     torch.backends.cudnn.benchmark = True
 
-    SAVE_PATH = './cp_lstm.bin'
+    SAVE_PATH = './cp_lstm_128.bin'
     logger = Logger('./lstmlogs')
 
-    lossfunction = nn.MSELoss()
+    lossfunction = nn.CrossEntropyLoss()
     batch_size = 100
 
     dataset = Rand_num()
     sampler = RandomSampler(dataset)
     loader = DataLoader(dataset, batch_size, sampler = sampler, shuffle = False, num_workers=1, drop_last=True)
-    net = LSTMLayer(1000, 1024, 5, batch_size)
+    net = LSTMLayer(1000, 32, 1, batch_size)
     #net.load_state_dict(torch.load(SAVE_PATH))
     net.cuda()
-    optimizer = optim.Adam(net.parameters(), lr=0.00005)
+    optimizer = optim.Adam(net.parameters(), lr=0.0005)
     for epoch in range(10000):
         for i, data in enumerate(loader, 0):
             net.zero_grad()
             net.hidden = net.init_hidden()
             video, labels = data
-            labels = torch.squeeze(Variable(labels.float().cuda()))
+            labels = torch.squeeze(Variable(labels.long().cuda()))
             video = Variable((video.float()/256).cuda()).permute(1,0,2)
 
             net.train()
@@ -67,8 +67,9 @@ if __name__ == '__main__':
                 net.eval()
                 outputs = net.forward(video)
                 _, maxout = torch.max(outputs, 1)
-                _, gtlabel = torch.max(labels, 1)
-                accu = torch.mean(torch.eq(gtlabel.float(), maxout.float()).float())
+               # _, gtlabel = torch.max(labels, 1)
+               # accu = torch.mean(torch.eq(gtlabel.float(), maxout.float()).float())
+                accu = torch.mean(torch.eq(labels, maxout).float())
                 print (datetime.datetime.now())
                 print (loss)
                 print (accu)
