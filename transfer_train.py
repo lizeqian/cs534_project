@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
 	################Load dict#############
     if model_selection == 'vgg':
-    	pretrained_dict = model_zoo.load_url(model_urls['vgg11'])
+    	pretrained_dict = model_zoo.load_url(model_urls['vgg11_bn'])
     else:
     	pretrained_dict = model_zoo.load_url(model_urls['alexnet'])
 
@@ -120,6 +120,7 @@ if __name__ == '__main__':
             lstmnet.train()
             model.train()
             outputs = model.forward(video)
+            outputs = outputs.view(-1, batch_size, 4096)
             outputs = lstmnet.forward(outputs)
             loss = lossfunction(outputs, labels)
             loss.backward()
