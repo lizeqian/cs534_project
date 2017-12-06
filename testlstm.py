@@ -41,7 +41,7 @@ if __name__ == '__main__':
     dataset = Rand_num()
     sampler = SequentialSampler(dataset)
     loader = DataLoader(dataset, batch_size, sampler = sampler, shuffle = False, num_workers=1, drop_last=True)
-    net = LSTMLayer(1000, 128, 5, batch_size)
+    net = LSTMLayer(1000, 32, 1, batch_size)
     net.load_state_dict(torch.load(SAVE_PATH))
     net.cuda()
     for i, data in enumerate(loader, 0):

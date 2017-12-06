@@ -1,16 +1,6 @@
 import torch.nn as nn
-import torch
-import torch.utils.model_zoo as model_zoo
-from torch.utils.data.dataset import Dataset
-import datetime
-import cv2
-import sys
-import os
-import numpy as np
-from torch.utils.data import DataLoader
-from torch.utils.data.sampler import RandomSampler
-from torch.autograd import Variable
-	
+import math
+
 cfg = {
     'A': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
     'B': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],

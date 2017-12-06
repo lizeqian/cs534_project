@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 from torchvision import models, transforms
+import torch.utils.model_zoo as model_zoo
 from torch.autograd import Variable
 import datetime
 import cv2
@@ -65,38 +66,45 @@ if __name__ == '__main__':
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
     torch.backends.cudnn.benchmark = True
     batch_size = 10
-    SAVE_PATH0 = './cp_lstm.bin'
-	SAVE_PATH1 = './cp_alex.bin'
     lossfunction = nn.CrossEntropyLoss()
-    logger = Logger('./lrcnlogs2')
-	
-	model_selection = 'vgg'
+
+    model_selection = 'alex'
+
+    if model_selection == 'vgg':
+        logger = Logger('./vgglogs')
+        SAVE_PATH0 = './cp_vgg.bin'
+        SAVE_PATH1 = './cp_vgg.bin'
+    else:
+        logger = Logger('./alexlogs')
+        SAVE_PATH0 = './cp_alex.bin'
+        SAVE_PATH1 = './cp_alex.bin'
+
 
 	#########Dataset set up###########
     dataset = Rand_num("data/dataset/")
     sampler = RandomSampler(dataset)
     loader = DataLoader(dataset, batch_size, sampler = sampler, shuffle = False, num_workers=1, drop_last=True)
-	
+
 	##########Network set up##########
-    lstmnet = lstmlayer(4096, 32, 1, batch_size)
-	
-	if model_selection == 'vgg':
-		model = VGG()
-	else:
-		model = AlexNet()
-	
+    lstmnet = LSTMLayer(4096, 64, 2, batch_size)
+
+    if model_selection == 'vgg':
+    	model = VGG()
+    else:
+    	model = AlexNet()
+
 	################Load dict#############
-	if model_selection == 'vgg':
-		pretrained_dict = model_zoo.load_url(model_urls['vgg11'])
-	else:
-		pretrained_dict = model_zoo.load_url(model_urls['alexnet'])
-	
-	model_dict = model.state_dict()
-	pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
-	model_dict.update(pretrained_dict)
-	model.load_state_dict(model_dict)
-	
-	lstmnet.cuda()
+    if model_selection == 'vgg':
+    	pretrained_dict = model_zoo.load_url(model_urls['vgg11'])
+    else:
+    	pretrained_dict = model_zoo.load_url(model_urls['alexnet'])
+
+    model_dict = model.state_dict()
+    pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
+    model_dict.update(pretrained_dict)
+    model.load_state_dict(model_dict)
+
+    lstmnet.cuda()
     model.cuda()
     optimizer = optim.Adam([{'params': model.parameters()}, {'params': lstmnet.parameters(), 'lr': 0.0001}], lr=0.000001, weight_decay=0.001)
     for epoch in range(10000):
@@ -105,13 +113,13 @@ if __name__ == '__main__':
             video = video.permute(1,0,2,3,4)
             video = video.contiguous().view(-1,3,227,227)
             lstmnet.zero_grad()
-			model.zero_grad()
+            model.zero_grad()
             lstmnet.hidden = lstmnet.init_hidden()
             labels = Variable(labels.long().cuda())
             video = Variable((video.float()/256).cuda())
             lstmnet.train()
-			model.train()
-			outputs = model.forward(video)
+            model.train()
+            outputs = model.forward(video)
             outputs = lstmnet.forward(outputs)
             loss = lossfunction(outputs, labels)
             loss.backward()
@@ -119,11 +127,11 @@ if __name__ == '__main__':
             if i == 0:
                 print(datetime.datetime.now())
                 torch.save(lstmnet.state_dict(), SAVE_PATH0)
-				torch.save(model.state_dict(), SAVE_PATH1)
+                torch.save(model.state_dict(), SAVE_PATH1)
                 lstmnet.eval()
-				model.eval()
+                model.eval()
                 outputs = model.forward(video)
-				outputs = lstmnet.forward(outputs)
+                outputs = lstmnet.forward(outputs)
                 _, maxout = torch.max(outputs, 1)
                 #_, gtlabel = torch.max(labels, 1)
                 accu = torch.mean(torch.eq(labels.float(), maxout.float()).float())
